@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mr. Aviator - Pakistani Theme</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(#021b10, #034d28);
+  overflow-x: hidden;
+  color: white;
+  text-align: center;
+}
+header {
+  background-color: #014d1a;
+  padding: 10px;
+  font-size: 24px;
+}
+#gameCanvas {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  height: 300px;
+  margin: 20px auto;
+  background: radial-gradient(circle at center, #012d14, #021b10);
+  border: 2px solid #0a0;
+  overflow: hidden;
+  border-radius: 10px;
+}
+#aviator {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 50px;
+  transform: translateY(-50%);
+  transition: left 0.05s linear;
+}
+#moon, #star {
+  position: absolute;
+  top: 20px;
+  width: 50px;
+  opacity: 0.8;
+}
+#moon {
+  right: 60px;
+}
+#star {
+  right: 20px;
+}
+@keyframes sparkle {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.sparkle {
+  animation: sparkle 1s ease-in-out infinite;
+}
+#status {
+  margin: 20px;
+  font-size: 18px;
+}
+button, input {
+  margin: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+<header>✈️ Mr. Aviator - 🇵🇰</header>
+
+<div>
+  <input type="number" id="betAmount" placeholder="Enter your bet" min="1">
+  <button id="startGame">Start Game</button>
+  <button id="cashOut" disabled>Cash Out</button>
+  <div id="status">Place your bet and start!</div>
+</div>
+
+<div id="gameCanvas">
+  <img id="aviator" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Airplane_silhouette.svg/1200px-Airplane_silhouette.svg.png">
+  <img id="moon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Islamic_Crescent.svg/1024px-Islamic_Crescent.svg.png">
+  <img id="star" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Star_green.svg/1024px-Star_green.svg.png">
+</div>
+
+<audio id="winSound" src="https://freesound.org/data/previews/341/341695_3248244-lq.mp3"></audio>
+<audio id="crashSound" src="https://freesound.org/data/previews/256/256113_4486188-lq.mp3"></audio>
+
+<script>
+let multiplier = 1.00;
+let interval;
+let crashed = false;
+let currentBet = 0;
+let aviator = document.getElementById('aviator');
+let moon = document.getElementById('moon');
+let star = document.getElementById('star');
+let statusEl = document.getElementById('status');
+let startBtn = document.getElementById('startGame');
+let cashOutBtn = document.getElementById('cashOut');
+let betInput = document.getElementById('betAmount');
+let winSound = document.getElementById('winSound');
+let crashSound = document.getElementById('crashSound');
+let aviatorPos = 0;
+
+aviator.style.filter = 'hue-rotate(90deg)';
+
+function resetGame() {
+  multiplier = 1.00;
+  crashed = false;
+  currentBet = 0;
+  aviatorPos = 0;
+  aviator.style.left = '0';
+  aviator.style.top = '50%';
+  moon.classList.remove('sparkle');
+  star.classList.remove('sparkle');
+  statusEl.textContent = 'Place your bet and start!';
+  betInput.disabled = false;
+  startBtn.disabled = false;
+  cashOutBtn.disabled = true;
+}
+
+function startGame() {
+  currentBet = parseFloat(betInput.value);
+  if (!currentBet || currentBet <= 0) {
+    alert('Enter a valid bet amount.');
+    return;
+  }
+  betInput.disabled = true;
+  startBtn.disabled = true;
+  cashOutBtn.disabled = false;
+  multiplier = 1.00;
+  crashed = false;
+  statusEl.textContent = 'Game Running...';
+  const crashAt = (Math.random() * 5 + 1).toFixed(2);
+
+  interval = setInterval(() => {
+    multiplier += 0.02;
+    aviatorPos += 2;
+    aviator.style.left = aviatorPos + 'px';
+    statusEl.textContent = `✈️ ${multiplier.toFixed(2)}×`;
+
+    if (multiplier >= crashAt) {
+      gameOver();
+    }
+  }, 50);
+}
+
+function gameOver() {
+  clearInterval(interval);
+  crashed = true;
+  statusEl.textContent = `💥 Crashed at ${multiplier.toFixed(2)}×`;
+  crashSound.play();
+  cashOutBtn.disabled = true;
+  setTimeout(resetGame, 3000);
+}
+
+cashOutBtn.addEventListener('click', () => {
+  if (!crashed) {
+    clearInterval(interval);
+    let winnings = currentBet * multiplier;
+    statusEl.textContent = `✅ You cashed out at ${multiplier.toFixed(2)}× and won $${winnings.toFixed(2)}`;
+    cashOutBtn.disabled = true;
+    moon.classList.add('sparkle');
+    star.classList.add('sparkle');
+    winSound.play();
+    setTimeout(resetGame, 3000);
+  }
+});
+
+startBtn.addEventListener('click', startGame);
+</script>
+
+</body>
+</html>
